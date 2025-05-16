@@ -26,8 +26,8 @@ from transformers import (WEIGHTS_NAME, BertConfig, BertTokenizer)
 
 from transformers import AdamW, get_linear_schedule_with_warmup
 
-from utils import (SEMEVAL_RELATION_LABELS, TACRED_RELATION_LABELS, compute_metrics, 
-    convert_examples_to_features, output_modes, data_processors)
+from utils import (SEMEVAL_RELATION_LABELS, TACRED_RELATION_LABELS, compute_metrics,
+                   convert_examples_to_features, output_modes, data_processors)
 import torch.nn.functional as F
 
 from argparse import ArgumentParser
@@ -48,7 +48,7 @@ def set_seed(seed):
 def train(config, train_dataset, model, tokenizer):
     """ Train the model """
     config.train_batch_size = config.per_gpu_train_batch_size * \
-        max(1, config.n_gpu)
+                              max(1, config.n_gpu)
     if config.local_rank == -1:
         train_sampler = RandomSampler(train_dataset)
     else:
@@ -60,7 +60,7 @@ def train(config, train_dataset, model, tokenizer):
     if config.max_steps > 0:
         t_total = config.max_steps
         config.num_train_epochs = config.max_steps // (
-            len(train_dataloader) // config.gradient_accumulation_steps) + 1
+                len(train_dataloader) // config.gradient_accumulation_steps) + 1
     else:
         t_total = len(
             train_dataloader) // config.gradient_accumulation_steps * config.num_train_epochs
@@ -112,11 +112,11 @@ def train(config, train_dataset, model, tokenizer):
         for step, batch in enumerate(epoch_iterator):
             model.train()
             batch = tuple(t.to(config.device) for t in batch)
-            inputs = {'input_ids':      batch[0],
+            inputs = {'input_ids': batch[0],
                       'attention_mask': batch[1],
                       # XLM and RoBERTa don't use segment_ids
                       'token_type_ids': batch[2],
-                      'labels':      batch[3],
+                      'labels': batch[3],
                       'e1_mask': batch[4],
                       'e2_mask': batch[5],
                       }
@@ -141,7 +141,8 @@ def train(config, train_dataset, model, tokenizer):
                 model.zero_grad()
                 global_step += 1
 
-                if config.local_rank in [-1, 0] and config.logging_steps > 0 and global_step % config.logging_steps == 0:
+                if config.local_rank in [-1,
+                                         0] and config.logging_steps > 0 and global_step % config.logging_steps == 0:
                     # Log metrics
                     # Only evaluate when single GPU otherwise metrics may not average well
                     if config.local_rank == -1 and config.evaluate_during_training:
@@ -183,7 +184,7 @@ def evaluate(config, model, tokenizer, prefix=""):
         os.makedirs(eval_output_dir)
 
     config.eval_batch_size = config.per_gpu_eval_batch_size * \
-        max(1, config.n_gpu)
+                             max(1, config.n_gpu)
     # Note that DistributedSampler samples randomly
     eval_sampler = SequentialSampler(
         eval_dataset) if config.local_rank == -1 else DistributedSampler(eval_dataset)
@@ -203,11 +204,11 @@ def evaluate(config, model, tokenizer, prefix=""):
         batch = tuple(t.to(config.device) for t in batch)
 
         with torch.no_grad():
-            inputs = {'input_ids':      batch[0],
+            inputs = {'input_ids': batch[0],
                       'attention_mask': batch[1],
                       # XLM and RoBERTa don't use segment_ids
                       'token_type_ids': batch[2],
-                      'labels':      batch[3],
+                      'labels': batch[3],
                       'e1_mask': batch[4],
                       'e2_mask': batch[5],
                       }
@@ -231,13 +232,13 @@ def evaluate(config, model, tokenizer, prefix=""):
     logger.info("***** Eval results {} *****".format(prefix))
     for key in sorted(result.keys()):
         logger.info(f"{key} = {result[key]}")
-    
+
     if config.task_name == "semeval":
         output_eval_file = "eval/sem_res.txt"
         with open(output_eval_file, "w") as writer:
             for key in range(len(preds)):
                 writer.write("%d\t%s\n" %
-                             (key+8001, str(SEMEVAL_RELATION_LABELS[preds[key]])))
+                             (key + 8001, str(SEMEVAL_RELATION_LABELS[preds[key]])))
     elif config.task_name == "tacred":
         output_eval_file = "eval/tac_res.txt"
         with open(output_eval_file, "w") as writer:
@@ -272,7 +273,8 @@ def load_and_cache_examples(config, task, tokenizer, evaluate=False, test=False)
         examples = processor.get_dev_examples(
             config.data_dir) if evaluate else processor.get_train_examples(config.data_dir)
         features = convert_examples_to_features(
-            examples, label_list, config.max_seq_len, tokenizer, "classification", use_entity_indicator=config.use_entity_indicator)
+            examples, label_list, config.max_seq_len, tokenizer, "classification",
+            use_entity_indicator=config.use_entity_indicator)
         if config.local_rank in [-1, 0]:
             logger.info(f"Saving features into cached file {cached_features_file}")
             torch.save(features, cached_features_file)
@@ -309,9 +311,11 @@ def main():
     args = parser.parse_args()
     config = Config(args.config)
 
-    if os.path.exists(config.output_dir) and os.listdir(config.output_dir) and config.train and not config.overwrite_output_dir:
+    if os.path.exists(config.output_dir) and os.listdir(
+            config.output_dir) and config.train and not config.overwrite_output_dir:
         raise ValueError(
-            "Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(config.output_dir))
+            "Output directory ({}) already exists and is not empty. Use --overwrite_output_dir to overcome.".format(
+                config.output_dir))
 
     # Setup CUDA, GPU & distributed training
     if config.local_rank == -1 or config.no_cuda:
@@ -350,7 +354,7 @@ def main():
         config.pretrained_model_name, num_labels=num_labels, finetuning_task=config.task_name)
     do_lower_case = "-uncased" in config.pretrained_model_name
     tokenizer = BertTokenizer.from_pretrained(
-        config.pretrained_model_name, do_lower_case=do_lower_case, additional_special_tokens=additional_special_tokens)    
+        config.pretrained_model_name, do_lower_case=do_lower_case, additional_special_tokens=additional_special_tokens)
     model = BertForSequenceClassification.from_pretrained(
         config.pretrained_model_name, config=bertconfig)
 

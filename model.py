@@ -45,7 +45,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
         self.bert = BertModel(config)
         self.cls_dropout = nn.Dropout(0.1)  # dropout on CLS transformed token embedding
         self.ent_dropout = nn.Dropout(0.1)  # dropout on average entity embedding
-        self.classifier = nn.Linear(config.hidden_size*3, self.config.num_labels)
+        self.classifier = nn.Linear(config.hidden_size * 3, self.config.num_labels)
         self.init_weights()
 
     def forward(self, input_ids, token_type_ids=None, attention_mask=None, e1_mask=None, e2_mask=None, labels=None,
@@ -54,7 +54,8 @@ class BertForSequenceClassification(BertPreTrainedModel):
                             attention_mask=attention_mask, head_mask=head_mask)
         # for details, see https://huggingface.co/transformers/model_doc/bert.html#bertmodel
         pooled_output = outputs[1]  # sequence of hidden-states at the output of the last layer of the model
-        sequence_output = outputs[0]  # last layer hidden-state of the first token of the sequence (classification token) further processed by a Linear layer and a Tanh activation function.
+        sequence_output = outputs[
+            0]  # last layer hidden-state of the first token of the sequence (classification token) further processed by a Linear layer and a Tanh activation function.
 
         def extract_entity(sequence_output, e_mask):
             extended_e_mask = e_mask.unsqueeze(1)
@@ -80,7 +81,7 @@ class BertForSequenceClassification(BertPreTrainedModel):
             else:
                 loss_fct = CrossEntropyLoss()
                 loss = loss_fct(logits.view(-1, self.num_labels), labels.view(-1))
-                
+
             outputs = (loss,) + outputs
 
         return outputs  # (loss), logits, (hidden_states), (attentions)

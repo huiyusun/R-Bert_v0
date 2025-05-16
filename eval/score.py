@@ -10,23 +10,26 @@ from collections import Counter
 
 NO_RELATION = "no_relation"
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser(description='Score a prediction file using the gold labels.')
     parser.add_argument('-gold_file', help='The gold relation file; one relation per line')
-    parser.add_argument('-pred_file', help='A prediction file; one relation per line, in the same order as the gold file.')
+    parser.add_argument('-pred_file',
+                        help='A prediction file; one relation per line, in the same order as the gold file.')
     args = parser.parse_args()
     return args
+
 
 def score(key, prediction, verbose=False):
     correct_by_relation = Counter()
     guessed_by_relation = Counter()
-    gold_by_relation    = Counter()
+    gold_by_relation = Counter()
 
     # Loop over the data to compute a score
     for row in range(len(key)):
         gold = key[row]
         guess = prediction[row]
-         
+
         if gold == NO_RELATION and guess == NO_RELATION:
             pass
         elif gold == NO_RELATION and guess != NO_RELATION:
@@ -50,7 +53,7 @@ def score(key, prediction, verbose=False):
             # (compute the score)
             correct = correct_by_relation[relation]
             guessed = guessed_by_relation[relation]
-            gold    = gold_by_relation[relation]
+            gold = gold_by_relation[relation]
             prec = 1.0
             if guessed > 0:
                 prec = float(correct) / float(guessed)
@@ -83,7 +86,7 @@ def score(key, prediction, verbose=False):
         print("Final Score:")
     prec_micro = 1.0
     if sum(guessed_by_relation.values()) > 0:
-        prec_micro   = float(sum(correct_by_relation.values())) / float(sum(guessed_by_relation.values()))
+        prec_micro = float(sum(correct_by_relation.values())) / float(sum(guessed_by_relation.values()))
     recall_micro = 0.0
     if sum(gold_by_relation.values()) > 0:
         recall_micro = float(sum(correct_by_relation.values())) / float(sum(gold_by_relation.values()))
@@ -95,6 +98,7 @@ def score(key, prediction, verbose=False):
     print("       F1 (micro): {:.3%}".format(f1_micro))
     return prec_micro, recall_micro, f1_micro
 
+
 if __name__ == "__main__":
     # Parse the arguments from stdin
     args = parse_arguments()
@@ -103,9 +107,9 @@ if __name__ == "__main__":
 
     # Check that the lengths match
     if len(prediction) != len(key):
-        print("Gold and prediction file must have same number of elements: {} in gold vs {} in prediction".format(len(key), len(prediction)))
+        print("Gold and prediction file must have same number of elements: {} in gold vs {} in prediction".format(
+            len(key), len(prediction)))
         exit(1)
-    
+
     # Score the predictions
     score(key, prediction, verbose=True)
-
