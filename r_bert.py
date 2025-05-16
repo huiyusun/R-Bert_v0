@@ -24,7 +24,8 @@ from tqdm import tqdm, trange
 
 from transformers import (WEIGHTS_NAME, BertConfig, BertTokenizer)
 
-from transformers import AdamW, get_linear_schedule_with_warmup
+from torch.optim import AdamW
+from transformers import get_linear_schedule_with_warmup
 
 from utils import (SEMEVAL_RELATION_LABELS, TACRED_RELATION_LABELS, compute_metrics,
                    convert_examples_to_features, output_modes, data_processors)
@@ -357,6 +358,7 @@ def main():
         config.pretrained_model_name, do_lower_case=do_lower_case, additional_special_tokens=additional_special_tokens)
     model = BertForSequenceClassification.from_pretrained(
         config.pretrained_model_name, config=bertconfig)
+    model.resize_token_embeddings(len(tokenizer))  # fix index out of range in self error
 
     if config.local_rank == 0:
         # Make sure only the first process in distributed training will download model & vocab

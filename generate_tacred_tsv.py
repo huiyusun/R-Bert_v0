@@ -5,6 +5,10 @@ Then, run this script to generate train/dev/test files in R-BERT input tsv forma
 """
 
 import json
+import os
+
+os.makedirs("./data/tsv_cased", exist_ok=True)
+os.makedirs("./data/tsv_uncased", exist_ok=True)
 
 splits = ["train", "dev", "test"]
 cases = ["cased", "uncased"]
