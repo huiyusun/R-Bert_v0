@@ -8,13 +8,6 @@ import torch.nn as nn
 import numpy as np
 import torch
 import socket
-# wss
-# import ptvsd
-# Allow other computers to attach to ptvsd at this IP address and port.
-# ptvsd.enable_attach(address=('192.168.11.2', 3000), redirect_output=True)
-# Pause the program until a remote debugger is attached
-# ptvsd.wait_for_attach()
-
 
 from torch.utils.data import (DataLoader, RandomSampler, SequentialSampler,
                               TensorDataset)
