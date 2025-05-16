@@ -4,8 +4,8 @@ import torch
 from torch.utils.data import (DataLoader, SequentialSampler, TensorDataset)
 from tqdm import tqdm
 from transformers import BertTokenizer
-from utils import (TACRED_RELATION_LABELS, compute_metrics, 
-    convert_examples_to_features, InputExample)
+from utils import (TACRED_RELATION_LABELS, compute_metrics,
+                   convert_examples_to_features, InputExample)
 from model import BertForSequenceClassification
 import csv
 
@@ -46,7 +46,7 @@ def load_examples(input_file, tokenizer, max_seq_len=192, n_labels=42):
     n_labels: int, number of labels
     """
     label_list = [str(i) for i in range(n_labels)]
-    
+
     # Load data features from dataset file
     lines = _read_tsv(input_file)
     examples = _create_examples(lines, "eval")
@@ -85,14 +85,14 @@ do_lower = ("-uncased" in pretrained_model_name)
 input_file = "/home/jiaming/datasets/TACRED/data/tsv_cased/test.tsv"
 # output_eval_file = "./eval/tac_res.txt"
 output_eval_file = "./eval/tac_res_large.txt"
-batch_size=16
+batch_size = 16
 
 """
 Start eval
 """
 additional_special_tokens = ["[E11]", "[E12]", "[E21]", "[E22]"]
-tokenizer = BertTokenizer.from_pretrained(pretrained_model_name, 
-    do_lower_case=do_lower, additional_special_tokens=additional_special_tokens)
+tokenizer = BertTokenizer.from_pretrained(pretrained_model_name,
+                                          do_lower_case=do_lower, additional_special_tokens=additional_special_tokens)
 model = BertForSequenceClassification.from_pretrained(checkpoint)
 model.to(device)
 
@@ -111,11 +111,11 @@ for batch in tqdm(eval_dataloader, desc="Evaluating"):
     batch = tuple(t.to(device) for t in batch)
 
     with torch.no_grad():
-        inputs = {'input_ids':      batch[0],
+        inputs = {'input_ids': batch[0],
                   'attention_mask': batch[1],
                   # XLM and RoBERTa don't use segment_ids
                   'token_type_ids': batch[2],
-                  'labels':      batch[3],
+                  'labels': batch[3],
                   'e1_mask': batch[4],
                   'e2_mask': batch[5],
                   }
